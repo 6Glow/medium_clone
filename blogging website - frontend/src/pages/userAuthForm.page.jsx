@@ -1,22 +1,30 @@
 import { useContext, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.png";
 import AnimationWrapper from "../common/page-animation";
 import { Toaster, toast } from "react-hot-toast";
 import axios from "axios";
 import { storeInSession } from "../common/session";
+import { UserContext } from "../App.jsx";
 
 
 const UserAuthForm = ({ type }) => {
- 
+
+  const authForm = useRef();
+
+  let { userAuth: { access_token }, setUserAuth } = useContext(UserContext)
+
+
+  
 
   const userAuthThroughServer = (serverRoute, formData) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
       .then(({ data }) => {
         storeInSession("user", JSON.stringify(data))
-        console.log(storeInSession)
+        
+        setUserAuth(data)
         
       })
       .catch(({ response }) => {
@@ -32,7 +40,7 @@ const UserAuthForm = ({ type }) => {
     let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; // regex for email
     let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // regex for password
 
-    let form = new FormData(formElement);
+    let form = new FormData(authForm.current);
     let formData = {};
 
     for (let [key, value] of form.entries()) {
@@ -65,10 +73,15 @@ const UserAuthForm = ({ type }) => {
   };
 
   return (
+    access_token ?
+
+    <Navigate to="/" />
+
+    :
     <AnimationWrapper keyValue={type}>
       <section className="h-cover flex items-center justify-center">
         <Toaster />
-        <form id="formElement" className="w-[80%] max-w-[400px]">
+        <form  ref={authForm}  className="w-[80%] max-w-[400px]">
           <h1 className="text-4xl font-gelasio capitalize text-center mb-24">
             {type == "sign-in" ? "Welcome back" : "Join us today"}
           </h1>
